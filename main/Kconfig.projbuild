@@ -1,0 +1,84 @@
+menu "WT32 Boilerplate"
+
+    config WT32_STATIC_IP
+        string "Failsafe static IP"
+        default "192.168.1.50"
+        help
+            Address applied when DHCP is disabled, or when DHCP does not
+            answer within WT32_DHCP_TIMEOUT_S. This value is compiled into
+            the image, so set it before the USB-UART flash. The OTA script
+            can always reach the board at this address when the failsafe
+            is the address actually in use.
+
+    config WT32_STATIC_NETMASK
+        string "Failsafe netmask"
+        default "255.255.255.0"
+        help
+            Netmask paired with WT32_STATIC_IP. Required even if you expect
+            DHCP to succeed.
+
+    config WT32_STATIC_GATEWAY
+        string "Failsafe gateway"
+        default "192.168.1.1"
+        help
+            Default gateway paired with WT32_STATIC_IP.
+
+    config WT32_STATIC_DNS
+        string "Failsafe DNS server"
+        default "192.168.1.1"
+        help
+            DNS server used together with the failsafe static address.
+            Unused by the boilerplate itself; user tasks that resolve
+            names after a static fallback see this server.
+
+    config WT32_USE_DHCP
+        bool "Try DHCP first"
+        default y
+        help
+            When enabled, the board starts the DHCP client and waits
+            WT32_DHCP_TIMEOUT_S seconds. If no lease arrives, it stops
+            the client and installs the static address above.
+            When disabled, the static address is installed immediately
+            and DHCP is never started.
+
+    config WT32_DHCP_TIMEOUT_S
+        int "Seconds to wait for a DHCP lease"
+        depends on WT32_USE_DHCP
+        range 1 120
+        default 15
+        help
+            How long to wait for IP_EVENT_ETH_GOT_IP before falling
+            back to the static address. The link must already be up
+            for a lease to arrive; a missing cable still burns this
+            whole wait on every boot.
+
+    config WT32_OTA_PORT
+        int "OTA HTTP port"
+        range 1 65535
+        default 8080
+        help
+            TCP port for GET /info and POST /ota. tools/ota_update.py
+            defaults to this same port.
+
+    config WT32_OTA_TOKEN
+        string "OTA token (empty disables the check)"
+        default ""
+        help
+            When non-empty, POST /ota must send the same value in the
+            X-OTA-Token header. GET /info stays open so a rolled-back
+            board can still be identified. Leave empty on a trusted
+            bench network. Set it before flashing a unit that shares
+            a network with anything you do not control.
+
+    config WT32_DIAG_TIMEOUT_S
+        int "Seconds to wait for an IP while confirming an OTA image"
+        range 1 120
+        default 20
+        help
+            Used only on the first boot of an OTA image, and only when
+            the Ethernet link is already up. The image is rolled back
+            if that wait ends without an address. A down link does not
+            fail the check: an unplugged cable must not discard a good
+            update.
+
+endmenu

@@ -1,0 +1,37 @@
+# Target and flash. WT32-ETH01 modules are ESP32 with 4 MB flash.
+CONFIG_IDF_TARGET="esp32"
+CONFIG_ESPTOOLPY_FLASHMODE_DIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# Factory + two OTA slots. See partitions.csv.
+# CONFIG_PARTITION_TABLE_SINGLE_APP is not set
+# CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE is not set
+# CONFIG_PARTITION_TABLE_TWO_OTA is not set
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+
+# First boot of an OTA image stays pending until the app confirms it.
+# A crash or reboot before that confirm rolls back to the previous app.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+# Internal EMAC, RMII clock supplied by the LAN8720 oscillator into GPIO0.
+# The header that declares ETH_ESP32_EMAC_DEFAULT_CONFIG requires these.
+CONFIG_ETH_ENABLED=y
+CONFIG_ETH_USE_ESP32_EMAC=y
+CONFIG_ETH_RMII_CLK_INPUT=y
+CONFIG_ETH_RMII_CLK_IN_GPIO=0
+
+# A stuck task should reset the chip. If that happens before the new image
+# confirms itself, the bootloader rolls back.
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_PANIC=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=15
+
+# app_main brings up Ethernet, DHCP, and the HTTP server before it returns.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
